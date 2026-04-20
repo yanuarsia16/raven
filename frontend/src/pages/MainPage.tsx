@@ -1,5 +1,5 @@
 import { Flex, Box } from '@radix-ui/themes'
-import { Outlet, useParams } from 'react-router-dom'
+import { Outlet, useParams, useSearchParams } from 'react-router-dom'
 import { lazy, Suspense, useContext, useEffect } from 'react'
 import { Sidebar } from '../components/layout/Sidebar/Sidebar'
 import { ChannelListProvider } from '../utils/channel/ChannelListProvider'
@@ -51,6 +51,8 @@ const MainPageContent = () => {
     }, [])
 
     const isMobile = useIsMobile()
+    const [searchParams] = useSearchParams()
+    const isEmbedded = searchParams.get('embedded') === '1'
 
     useActiveSocketConnection()
     
@@ -101,12 +103,12 @@ const MainPageContent = () => {
     return <UserListProvider>
         <ChannelListProvider>
             <Flex>
-                {!isMobile &&
+                {!isMobile && !isEmbedded &&
                     <Box className={`w-80 bg-gray-2 border-r-gray-3 border-r dark:bg-gray-1`} left="0" top='0' position="fixed">
                         <Sidebar />
                     </Box>
                 }
-                <Box className='md:ml-[var(--sidebar-width)] w-[calc(100vw-var(--sidebar-width)-0rem)] dark:bg-gray-2'>
+                <Box className={isEmbedded ? 'w-screen dark:bg-gray-2' : 'md:ml-[var(--sidebar-width)] w-[calc(100vw-var(--sidebar-width)-0rem)] dark:bg-gray-2'}>
                     <Outlet />
                 </Box>
             </Flex>
