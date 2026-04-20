@@ -5,7 +5,7 @@ from mimetypes import guess_type
 import blurhash
 import frappe
 from frappe import _
-from frappe.core.doctype.file.utils import get_local_image
+from frappe.core.doctype.file.utils import get_local_image, get_web_image
 from frappe.handler import upload_file
 from frappe.utils.image import optimize_image
 from PIL import Image, ImageOps
@@ -123,9 +123,11 @@ def upload_file_with_message():
 
 		message_doc.message_type = "Image"
 
-		image, filename, extn = get_local_image(file_doc.file_url)
+		if file_doc.file_url.startswith('/api/method/') or file_doc.file_url.startswith('http'):
+			image, filename, extn = get_web_image(file_doc.file_url)
+		else:
+			image, filename, extn = get_local_image(file_doc.file_url)
 		width, height = image.size
-
 		MAX_WIDTH = 480
 		MAX_HEIGHT = 320
 		is_landscape = width > height
