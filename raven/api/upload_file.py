@@ -69,6 +69,7 @@ def get_image_from_uploaded_content(content: bytes, filename: str):
 	return image.copy()
 
 
+@frappe.whitelist()
 def upload_file_with_message():
 	"""
 	When the user uploads a file on Raven, this API is called.
