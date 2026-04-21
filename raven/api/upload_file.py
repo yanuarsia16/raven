@@ -8,7 +8,7 @@ from frappe import _
 from frappe.core.doctype.file.utils import get_local_image, get_web_image
 from frappe.handler import upload_file
 from frappe.utils.image import optimize_image
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 
 def upload_JPEG_wrt_EXIF(content, filename, optimize=False):
@@ -51,6 +51,24 @@ def upload_JPEG_wrt_EXIF(content, filename, optimize=False):
 
 
 @frappe.whitelist()
+def get_image_from_uploaded_content(content: bytes, filename: str):
+	"""Read image metadata directly from uploaded bytes before any storage backend redirects."""
+	from PIL import Image
+
+	buffer = content
+	content_type = guess_type(filename)[0] or ""
+
+	if content_type.startswith("image/jpeg"):
+		with Image.open(io.BytesIO(content)) as uploaded_image:
+			transposed_image = ImageOps.exif_transpose(uploaded_image)
+			output = io.BytesIO()
+			transposed_image.save(output, format=uploaded_image.format or "JPEG")
+			buffer = output.getvalue()
+
+	image = Image.open(io.BytesIO(buffer))
+	return image.copy()
+
+
 def upload_file_with_message():
 	"""
 	When the user uploads a file on Raven, this API is called.
@@ -101,17 +119,19 @@ def upload_file_with_message():
 
 	# Get the files
 	files = frappe.request.files
+	raw_content = None
 	# Get the file & content
 	if "file" in files:
 		file = files["file"]
 		filename = file.filename
+		raw_content = file.stream.read()
+		file.stream.seek(0)
 		"""
         If the file is a JPEG, we need to transpose the image
         Else, we need to upload the file as is
         """
 		if filename.endswith(".jpeg") or filename.endswith(".jpg"):
-			content = file.stream.read()
-			file_doc = upload_JPEG_wrt_EXIF(content, filename, frappe.form_dict.optimize)
+			file_doc = upload_JPEG_wrt_EXIF(raw_content, filename, frappe.form_dict.optimize)
 		else:
 			file_doc = upload_file()
 
@@ -123,10 +143,20 @@ def upload_file_with_message():
 
 		message_doc.message_type = "Image"
 
-		if file_doc.file_url.startswith('/api/method/') or file_doc.file_url.startswith('http'):
-			image, filename, extn = get_web_image(file_doc.file_url)
-		else:
-			image, filename, extn = get_local_image(file_doc.file_url)
+		try:
+			if raw_content:
+				image = get_image_from_uploaded_content(raw_content, filename)
+				try:
+					filename, extn = filename.rsplit(".", 1)
+				except ValueError:
+					extn = None
+			else:
+				raise UnidentifiedImageError
+		except Exception:
+			if file_doc.file_url.startswith('/api/method/') or file_doc.file_url.startswith('http'):
+				image, filename, extn = get_web_image(file_doc.file_url)
+			else:
+				image, filename, extn = get_local_image(file_doc.file_url)
 		width, height = image.size
 		MAX_WIDTH = 480
 		MAX_HEIGHT = 320
