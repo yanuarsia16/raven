@@ -1,0 +1,16 @@
+# HubSpot CLI Configuration
+# Run `hs init` to generate this file interactively, or fill in the values below.
+# Docs: https://developers.hubspot.com/docs/cms/developer-reference/local-development-cli
+
+defaultPortal: partner-portal
+
+portals:
+  - name: partner-portal
+    portalId: YOUR_PORTAL_ID          # Replace with your HubSpot Portal ID
+    authType: personalaccesskey
+    personalAccessKey: YOUR_PERSONAL_ACCESS_KEY   # Generate at: HubSpot → Settings → Account Setup → Integrations → Private Apps (or Personal Access Key)
+
+# Upload files with:
+#   hs upload src/templates  templates
+#   hs upload src/modules    modules
+#   hs upload src/css        css

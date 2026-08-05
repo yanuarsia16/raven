@@ -1,0 +1,326 @@
+<!--
+  templateType: page
+  isAvailableForNewContent: true
+  label: Partner Portal - Deal Detail (Dynamic Page)
+  screenshotPath: ../images/partner-portal-detail.png
+
+  SETUP CHECKLIST
+  ──────────────────────────────────────────────────────────────
+  1. Upload this template via: hs upload src/templates templates
+  2. In HubSpot, create a new Website Page using this template.
+  3. In the page settings, enable "Private content" → Require membership.
+  4. Under "Who can access?", use the same partner membership list.
+  5. Set the page URL slug to: /partner-portal/deals
+  6. In "Advanced" → "Dynamic pages", turn on "Make this a dynamic page".
+  7. Under "Data source", choose "Deals (CRM)".
+  8. Under "URL slug property", choose "Deal Name" (dealname).
+  9. Under "Properties to include", add at minimum:
+       dealname, amount, closedate, dealstage, pipeline,
+       deal_currency_code, description, hubspot_owner_id
+  ──────────────────────────────────────────────────────────────
+
+  URL structure produced by HubSpot:
+    Listing  →  /partner-portal/deals/
+    Detail   →  /partner-portal/deals/<deal-name-slug>/
+-->
+<!doctype html>
+<html lang="{{ html_lang }}" {{ html_lang_dir }}>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ meta_description }}">
+  <title>{{ page_meta.html_title }}</title>
+  {{ require_css(get_asset_url("../css/partner-portal.css")) }}
+  {{ standard_header_includes }}
+</head>
+<body>
+
+  <main class="pp-main">
+    <div class="pp-container">
+
+      {# ── Auth guard ────────────────────────────────────────────────────────── #}
+      {% if not contact or not contact.is_loggedin %}
+
+        <div class="pp-auth-wall">
+          <div class="pp-auth-wall__inner">
+            <div class="pp-auth-wall__icon">🔒</div>
+            <h1>Partner Portal</h1>
+            <p>You must be logged in to view deal details.</p>
+            <a class="pp-btn pp-btn--primary" href="/login">Log In</a>
+          </div>
+        </div>
+
+      {% else %}
+
+        {#
+          ── Resolve the current deal ─────────────────────────────────────────────
+          `dynamic_page_crm_object` is populated by HubSpot when this template is
+          used as a dynamic page with the Deals CRM object as its data source.
+          On the listing URL (/partner-portal/deals/) it is null.
+        #}
+        {% set deal = dynamic_page_crm_object %}
+
+        {% if not deal %}
+
+          {# ── Listing fallback (accessed at parent slug without a deal slug) ── #}
+          <div class="pp-error-state">
+            <h1>Deal Not Found</h1>
+            <p>No deal was specified. Please select a deal from your dashboard.</p>
+            <a class="pp-btn pp-btn--outline" href="/partner-portal">← Back to Your Deals</a>
+          </div>
+
+        {% else %}
+
+          {#
+            ── Security: verify the logged-in contact is associated with this deal ──
+            This prevents partners from accessing other partners' deals by guessing
+            a URL slug.
+            Association IDs (HUBSPOT_DEFINED):
+              typeId 4  =  Contact → Deal
+            We pull only hs_object_id to keep the response lean.
+          #}
+          {% set contact_deals = crm_associations(
+            contact.vid,
+            "HUBSPOT_DEFINED",
+            4,
+            "limit=200",
+            "hs_object_id"
+          ) %}
+
+          {% set is_authorized = false %}
+          {% if contact_deals and contact_deals.results %}
+            {% for cd in contact_deals.results %}
+              {% if cd.id == deal.id %}
+                {% set is_authorized = true %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          {% if not is_authorized %}
+
+            <div class="pp-error-state">
+              <h1>Access Denied</h1>
+              <p>You don't have permission to view this deal.</p>
+              <a class="pp-btn pp-btn--outline" href="/partner-portal">← Back to Your Deals</a>
+            </div>
+
+          {% else %}
+
+            {# ── Breadcrumb ──────────────────────────────────────────────────── #}
+            <nav class="pp-breadcrumb" aria-label="Breadcrumb">
+              <a href="/partner-portal">Your Deals</a>
+              <span aria-hidden="true">›</span>
+              <span>{{ deal.properties.dealname }}</span>
+            </nav>
+
+            {# ── Deal Header ─────────────────────────────────────────────────── #}
+            <header class="pp-deal-header">
+              <div class="pp-deal-header__left">
+                <h1 class="pp-deal-header__name">{{ deal.properties.dealname }}</h1>
+              </div>
+              <span class="pp-stage-badge pp-stage-badge--lg pp-stage-badge--{{ deal.properties.dealstage | lower | replace(' ', '-') }}">
+                {{ deal.properties.dealstage }}
+              </span>
+            </header>
+
+            {# ── Deal Overview ───────────────────────────────────────────────── #}
+            <section class="pp-section pp-deal-overview">
+              <h2 class="pp-section-title">Deal Overview</h2>
+              <dl class="pp-detail-list">
+
+                {% if deal.properties.amount %}
+                  <div class="pp-detail-list__item">
+                    <dt>Deal Value</dt>
+                    <dd>
+                      {{ deal.properties.deal_currency_code | default("USD") }}
+                      {{ deal.properties.amount | float | round(2) }}
+                    </dd>
+                  </div>
+                {% endif %}
+
+                {% if deal.properties.closedate %}
+                  <div class="pp-detail-list__item">
+                    <dt>Expected Close Date</dt>
+                    <dd>{{ deal.properties.closedate | datetimeformat("%B %d, %Y") }}</dd>
+                  </div>
+                {% endif %}
+
+                {% if deal.properties.dealstage %}
+                  <div class="pp-detail-list__item">
+                    <dt>Stage</dt>
+                    <dd>{{ deal.properties.dealstage }}</dd>
+                  </div>
+                {% endif %}
+
+                {% if deal.properties.pipeline %}
+                  <div class="pp-detail-list__item">
+                    <dt>Pipeline</dt>
+                    <dd>{{ deal.properties.pipeline }}</dd>
+                  </div>
+                {% endif %}
+
+                {% if deal.properties.description %}
+                  <div class="pp-detail-list__item pp-detail-list__item--full">
+                    <dt>Description</dt>
+                    <dd>{{ deal.properties.description }}</dd>
+                  </div>
+                {% endif %}
+
+              </dl>
+            </section>
+
+            {# ── Notes & Attachments ─────────────────────────────────────────── #}
+            <section class="pp-section pp-notes-section">
+              <h2 class="pp-section-title">Notes &amp; Updates</h2>
+
+              {#
+                Fetch notes associated with this deal.
+                ────────────────────────────────────────────────────────────────────
+                Association IDs (HUBSPOT_DEFINED) — Notes are CRM object type 0-47:
+                  typeId 214  =  Deal → Note
+                  typeId 213  =  Note → Deal
+
+                ⚠  Verify typeId 214 in your portal:
+                   GET /crm/v4/associations/deals/notes/labels
+                   or HubSpot → Settings → Objects → Deals → Associations
+
+                Properties:
+                  hs_note_body        Plain-text or HTML note content
+                  hs_timestamp        When the note was created (epoch ms)
+                  hs_attachment_ids   Comma-separated HubSpot File Manager file IDs
+                  hubspot_owner_id    Rep who created the note
+                ────────────────────────────────────────────────────────────────────
+              #}
+              {% set notes = crm_associations(
+                deal.id,
+                "HUBSPOT_DEFINED",
+                214,
+                "limit=50&sort=-hs_timestamp",
+                "hs_note_body,hs_timestamp,hs_attachment_ids,hubspot_owner_id"
+              ) %}
+
+              {% if notes and notes.results and notes.results | length > 0 %}
+
+                <div class="pp-notes-list">
+                  {% for note in notes.results %}
+
+                    <div class="pp-note">
+
+                      {# Note metadata row #}
+                      <div class="pp-note__meta">
+                        {% if note.properties.hs_timestamp %}
+                          <time class="pp-note__timestamp"
+                                datetime="{{ note.properties.hs_timestamp }}">
+                            {{ note.properties.hs_timestamp | datetimeformat("%B %d, %Y · %I:%M %p") }}
+                          </time>
+                        {% endif %}
+                      </div>
+
+                      {# Note body #}
+                      <div class="pp-note__body">
+                        {% if note.properties.hs_note_body %}
+                          {{ note.properties.hs_note_body }}
+                        {% else %}
+                          <em class="pp-note__empty">No content for this note.</em>
+                        {% endif %}
+                      </div>
+
+                      {# ── Attachments on this note ────────────────────────── #}
+                      {% if note.properties.hs_attachment_ids %}
+
+                        <div class="pp-note__attachments">
+                          <h3 class="pp-note__attachments-title">Attachments</h3>
+                          <ul class="pp-attachments-list">
+
+                            {% set raw_ids = note.properties.hs_attachment_ids %}
+                            {% set attachment_ids = raw_ids.split(",") %}
+
+                            {% for raw_id in attachment_ids %}
+                              {% set file_id = raw_id | trim %}
+                              {% if file_id %}
+
+                                {#
+                                  ──────────────────────────────────────────────────
+                                  Attachment URL Resolution
+                                  ──────────────────────────────────────────────────
+                                  HubSpot File Manager files are NOT directly
+                                  accessible via a simple ID-to-URL mapping in HubL.
+                                  Choose one of the two options below:
+
+                                  OPTION A — Files marked Public in File Manager
+                                    Upload deal attachments to HubSpot File Manager
+                                    and set them to "Public". Each file then has a
+                                    permanent CDN URL. Store that URL in a custom
+                                    deal/note property instead of relying on file IDs.
+
+                                  OPTION B — Serverless Function (recommended for
+                                    private files)
+                                    Create a .functions/ serverless endpoint that:
+                                      1. Reads the file_id
+                                      2. Calls GET /files/v3/files/{id}?property=url
+                                         with a private app token
+                                      3. Returns a signed URL (valid ~1 hour)
+                                    Then call that endpoint from client-side JS and
+                                    inject the download link dynamically.
+
+                                  The placeholder below renders the file ID.
+                                  Uncomment and adapt the <a> tag once file URLs
+                                  are available via one of the options above.
+                                  ──────────────────────────────────────────────────
+                                #}
+                                <li class="pp-attachment-item">
+                                  <span class="pp-attachment-item__icon" aria-hidden="true">📎</span>
+                                  <span class="pp-attachment-item__label">
+                                    Attachment (file #{{ file_id }})
+                                  </span>
+                                  {# Once you have the file URL, replace the span above with:
+                                  <a class="pp-attachment-item__link"
+                                     href="{{ file_url }}"
+                                     target="_blank"
+                                     rel="noopener noreferrer">
+                                    {{ file_name | default("Download file") }}
+                                  </a>
+                                  #}
+                                </li>
+
+                              {% endif %}
+                            {% endfor %}
+
+                          </ul>
+                        </div>
+
+                      {% endif %} {# end has attachments #}
+
+                    </div> {# end .pp-note #}
+
+                  {% endfor %}
+                </div>
+
+              {% else %}
+
+                <div class="pp-empty-state pp-empty-state--inline">
+                  <p>No notes have been added to this deal yet.</p>
+                </div>
+
+              {% endif %} {# end has notes #}
+
+            </section> {# end notes section #}
+
+            {# ── Back link ──────────────────────────────────────────────────── #}
+            <div class="pp-back-link">
+              <a href="/partner-portal" class="pp-btn pp-btn--ghost">← Back to All Deals</a>
+            </div>
+
+          {% endif %} {# end is_authorized #}
+
+        {% endif %} {# end deal exists #}
+
+      {% endif %} {# end logged in #}
+
+    </div>
+  </main>
+
+  {{ standard_footer_includes }}
+</body>
+</html>

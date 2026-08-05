@@ -1,0 +1,172 @@
+<!--
+  templateType: page
+  isAvailableForNewContent: true
+  label: Partner Portal - Deal Listing
+  screenshotPath: ../images/partner-portal-listing.png
+
+  SETUP CHECKLIST
+  ──────────────────────────────────────────────────────────────
+  1. Upload this template via: hs upload src/templates templates
+  2. In HubSpot, create a new Website Page using this template.
+  3. In the page settings, enable "Private content" → Require membership.
+  4. Under "Who can access?", select the list(s) of registered partners.
+  5. Set the page URL slug to: /partner-portal
+  6. Set `detail_base_url` below to match your deal detail page slug.
+  ──────────────────────────────────────────────────────────────
+-->
+<!doctype html>
+<html lang="{{ html_lang }}" {{ html_lang_dir }}>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ meta_description }}">
+  <title>{{ page_meta.html_title }}</title>
+  {{ require_css(get_asset_url("../css/partner-portal.css")) }}
+  {{ standard_header_includes }}
+</head>
+<body>
+
+  <main class="pp-main">
+    <div class="pp-container">
+
+      {# ── Auth guard ────────────────────────────────────────────────────────── #}
+      {% if not contact or not contact.is_loggedin %}
+
+        <div class="pp-auth-wall">
+          <div class="pp-auth-wall__inner">
+            <div class="pp-auth-wall__icon">🔒</div>
+            <h1>Partner Portal</h1>
+            <p>You must be logged in as a registered partner to access your deals.</p>
+            <a class="pp-btn pp-btn--primary" href="/login">Log In to Continue</a>
+          </div>
+        </div>
+
+      {% else %}
+
+        {# ── Page header ─────────────────────────────────────────────────────── #}
+        <header class="pp-page-header">
+          <div>
+            <h1 class="pp-page-title">Your Deals</h1>
+            <p class="pp-page-subtitle">
+              Welcome back, {{ contact.firstname | default("Partner") }}.
+              Here are all deals associated with your account.
+            </p>
+          </div>
+        </header>
+
+        {#
+          ── Fetch deals for the logged-in contact ───────────────────────────────
+          crm_associations(object_id, association_category, association_type_id, query, properties)
+
+          Association IDs (HUBSPOT_DEFINED):
+            typeId 4  =  Contact → Deal
+            typeId 3  =  Deal → Contact
+
+          ⚠  Verify these IDs in your portal:
+               Settings → Objects → Deals → Associations → Notes  (or use the
+               GET /crm/v4/associations/{fromObject}/{toObject}/labels API)
+
+          Properties pulled from each deal — add custom properties here as needed.
+        #}
+        {% set deals = crm_associations(
+          contact.vid,
+          "HUBSPOT_DEFINED",
+          4,
+          "limit=100&sort=-createdate",
+          "dealname,amount,closedate,dealstage,pipeline,deal_currency_code,hs_object_id,description,hs_lastmodifieddate"
+        ) %}
+
+        {% if deals and deals.results and deals.results | length > 0 %}
+
+          <section class="pp-section pp-section--flush">
+            <div class="pp-deals-grid">
+              {% for deal in deals.results %}
+
+                <article class="pp-deal-card">
+
+                  <div class="pp-deal-card__header">
+                    <h2 class="pp-deal-card__name">{{ deal.properties.dealname }}</h2>
+                    <span class="pp-stage-badge pp-stage-badge--{{ deal.properties.dealstage | lower | replace(' ', '-') }}">
+                      {{ deal.properties.dealstage }}
+                    </span>
+                  </div>
+
+                  <dl class="pp-deal-card__meta">
+                    {% if deal.properties.amount %}
+                      <div class="pp-meta-item">
+                        <dt>Deal Value</dt>
+                        <dd>
+                          {{ deal.properties.deal_currency_code | default("USD") }}
+                          {{ deal.properties.amount | float | round(0) }}
+                        </dd>
+                      </div>
+                    {% endif %}
+
+                    {% if deal.properties.closedate %}
+                      <div class="pp-meta-item">
+                        <dt>Close Date</dt>
+                        <dd>{{ deal.properties.closedate | datetimeformat("%b %d, %Y") }}</dd>
+                      </div>
+                    {% endif %}
+
+                    {% if deal.properties.pipeline %}
+                      <div class="pp-meta-item">
+                        <dt>Pipeline</dt>
+                        <dd>{{ deal.properties.pipeline }}</dd>
+                      </div>
+                    {% endif %}
+
+                    {% if deal.properties.hs_lastmodifieddate %}
+                      <div class="pp-meta-item">
+                        <dt>Last Updated</dt>
+                        <dd>{{ deal.properties.hs_lastmodifieddate | datetimeformat("%b %d, %Y") }}</dd>
+                      </div>
+                    {% endif %}
+                  </dl>
+
+                  {% if deal.properties.description %}
+                    <p class="pp-deal-card__desc">
+                      {{ deal.properties.description | truncate(120) }}
+                    </p>
+                  {% endif %}
+
+                  {#
+                    Link to the dynamic deal detail page.
+                    ⚠  Replace "/partner-portal/deals" below with the actual URL
+                       of the page using partner-portal-detail.html as its template.
+                       The slug appended here must match the "URL slug property"
+                       configured on the dynamic page (default: dealname → slugified).
+                  #}
+                  <a class="pp-btn pp-btn--outline"
+                     href="/partner-portal/deals/{{ deal.properties.dealname | lower | replace(' ', '-') | replace('/', '-') }}">
+                    View Deal Details →
+                  </a>
+
+                </article>
+
+              {% endfor %}
+            </div>
+          </section>
+
+        {% else %}
+
+          <div class="pp-empty-state">
+            <div class="pp-empty-state__icon">📋</div>
+            <h2 class="pp-empty-state__title">No Deals Found</h2>
+            <p class="pp-empty-state__body">
+              There are no deals currently associated with your partner account.
+              Please contact your partner manager if you believe this is an error.
+            </p>
+          </div>
+
+        {% endif %}
+
+      {% endif %}
+
+    </div>
+  </main>
+
+  {{ standard_footer_includes }}
+</body>
+</html>

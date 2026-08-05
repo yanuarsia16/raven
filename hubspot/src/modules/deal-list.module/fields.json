@@ -1,0 +1,39 @@
+[
+  {
+    "id": "heading",
+    "name": "heading",
+    "label": "Section heading",
+    "required": false,
+    "locked": false,
+    "type": "text",
+    "default": "Your Deals"
+  },
+  {
+    "id": "detail_base_url",
+    "name": "detail_base_url",
+    "label": "Deal detail page URL (no trailing slash)",
+    "required": false,
+    "locked": false,
+    "type": "text",
+    "help_text": "e.g. /partner-portal/deals — must match the slug of the dynamic detail page.",
+    "default": "/partner-portal/deals"
+  },
+  {
+    "id": "max_deals",
+    "name": "max_deals",
+    "label": "Max deals to show",
+    "required": false,
+    "locked": false,
+    "type": "number",
+    "default": 50
+  },
+  {
+    "id": "empty_message",
+    "name": "empty_message",
+    "label": "Empty state message",
+    "required": false,
+    "locked": false,
+    "type": "text",
+    "default": "No deals are currently associated with your account. Please contact your partner manager."
+  }
+]

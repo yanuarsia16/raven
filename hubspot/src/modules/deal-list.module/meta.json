@@ -1,0 +1,13 @@
+{
+  "global": false,
+  "host_template_types": ["PAGE", "LANDING_PAGE"],
+  "icon": "",
+  "is_available_for_new_content": true,
+  "label": "Partner Portal – Deal List",
+  "master_language": "en",
+  "smart_type": "NOT_SMART",
+  "tags": ["partner-portal", "crm"],
+  "css_assets": [],
+  "js_assets": [],
+  "other_assets": []
+}

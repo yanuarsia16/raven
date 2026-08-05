@@ -1,0 +1,386 @@
+/* ============================================================
+   Partner Portal — Shared Stylesheet
+   Upload via: hs upload src/css css
+   ============================================================ */
+
+/* ── Design tokens ─────────────────────────────────────────── */
+:root {
+  --pp-primary:        #0B5FFF;
+  --pp-primary-dark:   #0A4FCC;
+  --pp-primary-light:  #EEF3FF;
+  --pp-text:           #111827;
+  --pp-text-muted:     #6b7280;
+  --pp-border:         #e5e7eb;
+  --pp-surface:        #ffffff;
+  --pp-bg:             #f9fafb;
+  --pp-radius:         8px;
+  --pp-radius-sm:      5px;
+  --pp-shadow-sm:      0 1px 2px rgba(0,0,0,.06);
+  --pp-shadow:         0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --pp-shadow-md:      0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
+  --pp-font:           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                       Helvetica, Arial, sans-serif;
+  --pp-mono:           ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ── Base layout ───────────────────────────────────────────── */
+.pp-main {
+  font-family: var(--pp-font);
+  background: var(--pp-bg);
+  min-height: 80vh;
+  padding: 2.5rem 1.25rem;
+  color: var(--pp-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.pp-container {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* ── Page header ───────────────────────────────────────────── */
+.pp-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.pp-page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0 0 .375rem;
+  letter-spacing: -.01em;
+}
+.pp-page-subtitle {
+  color: var(--pp-text-muted);
+  margin: 0;
+  font-size: .9375rem;
+}
+
+/* ── Sections ──────────────────────────────────────────────── */
+.pp-section {
+  background: var(--pp-surface);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--pp-shadow-sm);
+}
+.pp-section--flush {
+  background: none;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+.pp-section-title {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--pp-text-muted);
+  margin: 0 0 1.25rem;
+  padding-bottom: .875rem;
+  border-bottom: 1px solid var(--pp-border);
+}
+
+/* ── Deal grid (listing page) ──────────────────────────────── */
+.pp-deals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ── Deal card ─────────────────────────────────────────────── */
+.pp-deal-card {
+  background: var(--pp-surface);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius);
+  padding: 1.25rem 1.375rem;
+  box-shadow: var(--pp-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: .875rem;
+  transition: box-shadow .15s ease, transform .15s ease;
+}
+.pp-deal-card:hover {
+  box-shadow: var(--pp-shadow-md);
+  transform: translateY(-2px);
+}
+.pp-deal-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .625rem;
+}
+.pp-deal-card__name {
+  font-size: .9375rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.4;
+}
+.pp-deal-card__meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .625rem .875rem;
+}
+.pp-deal-card__desc {
+  font-size: .8125rem;
+  color: var(--pp-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Meta key/value pairs ──────────────────────────────────── */
+.pp-meta-item dt,
+.pp-detail-list__item dt {
+  font-size: .6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--pp-text-muted);
+  margin-bottom: .1875rem;
+}
+.pp-meta-item dd,
+.pp-detail-list__item dd {
+  margin: 0;
+  font-size: .875rem;
+  font-weight: 500;
+}
+
+/* ── Stage badge ───────────────────────────────────────────── */
+.pp-stage-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  font-size: .6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: var(--pp-primary-light);
+  color: var(--pp-primary);
+}
+.pp-stage-badge--lg { font-size: .8rem; padding: .3rem .875rem; }
+
+/* Stage-specific colour overrides — add your own deal stage slugs */
+.pp-stage-badge--closedwon,
+.pp-stage-badge--closed-won       { background: #d1fae5; color: #065f46; }
+.pp-stage-badge--closedlost,
+.pp-stage-badge--closed-lost      { background: #fee2e2; color: #991b1b; }
+.pp-stage-badge--contractsent,
+.pp-stage-badge--contract-sent    { background: #fef3c7; color: #92400e; }
+.pp-stage-badge--qualifiedtobuy,
+.pp-stage-badge--qualified-to-buy { background: #ede9fe; color: #4c1d95; }
+.pp-stage-badge--presentationscheduled,
+.pp-stage-badge--presentation-scheduled { background: #e0f2fe; color: #0c4a6e; }
+.pp-stage-badge--decisionmakerboughtin,
+.pp-stage-badge--decision-maker-bought-in { background: #fce7f3; color: #831843; }
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.pp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  padding: .5rem 1.125rem;
+  border-radius: var(--pp-radius-sm);
+  font-family: var(--pp-font);
+  font-size: .875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  align-self: flex-start;
+  margin-top: auto;
+  line-height: 1.5;
+}
+.pp-btn--primary {
+  background: var(--pp-primary);
+  color: #fff;
+  border-color: var(--pp-primary);
+}
+.pp-btn--primary:hover { background: var(--pp-primary-dark); border-color: var(--pp-primary-dark); }
+.pp-btn--outline {
+  background: transparent;
+  color: var(--pp-primary);
+  border-color: var(--pp-primary);
+}
+.pp-btn--outline:hover { background: var(--pp-primary-light); }
+.pp-btn--ghost {
+  background: transparent;
+  color: var(--pp-text-muted);
+  border-color: var(--pp-border);
+}
+.pp-btn--ghost:hover { background: var(--pp-border); color: var(--pp-text); }
+
+/* ── Auth wall ─────────────────────────────────────────────── */
+.pp-auth-wall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 55vh;
+}
+.pp-auth-wall__inner {
+  text-align: center;
+  max-width: 400px;
+  padding: 2.5rem;
+  background: var(--pp-surface);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius);
+  box-shadow: var(--pp-shadow-md);
+}
+.pp-auth-wall__icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.pp-auth-wall__inner h1 { font-size: 1.5rem; margin: 0 0 .625rem; }
+.pp-auth-wall__inner p  { color: var(--pp-text-muted); margin: 0 0 1.5rem; }
+
+/* ── Error / empty states ──────────────────────────────────── */
+.pp-error-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+.pp-error-state h1  { font-size: 1.5rem; margin: 0 0 .5rem; }
+.pp-error-state p   { color: var(--pp-text-muted); margin: 0 0 1.5rem; }
+
+.pp-empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--pp-surface);
+  border: 1.5px dashed var(--pp-border);
+  border-radius: var(--pp-radius);
+}
+.pp-empty-state__icon  { font-size: 2.25rem; margin-bottom: 1rem; }
+.pp-empty-state__title { font-size: 1.25rem; font-weight: 600; margin: 0 0 .5rem; }
+.pp-empty-state__body  { color: var(--pp-text-muted); margin: 0; }
+.pp-empty-state--inline { padding: 1.5rem; }
+
+/* ── Breadcrumb ────────────────────────────────────────────── */
+.pp-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .8125rem;
+  color: var(--pp-text-muted);
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.pp-breadcrumb a             { color: var(--pp-primary); text-decoration: none; }
+.pp-breadcrumb a:hover       { text-decoration: underline; }
+.pp-breadcrumb span[aria-hidden] { user-select: none; }
+
+/* ── Deal detail header ────────────────────────────────────── */
+.pp-deal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+.pp-deal-header__name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -.015em;
+}
+
+/* ── Detail property grid ──────────────────────────────────── */
+.pp-detail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
+  margin: 0;
+}
+.pp-detail-list__item          { display: flex; flex-direction: column; }
+.pp-detail-list__item--full    { grid-column: 1 / -1; }
+
+/* ── Notes list ────────────────────────────────────────────── */
+.pp-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pp-note {
+  border: 1px solid var(--pp-border);
+  border-left: 3px solid var(--pp-primary);
+  border-radius: 0 var(--pp-radius) var(--pp-radius) 0;
+  padding: 1rem 1.25rem;
+  background: #fafafa;
+}
+
+.pp-note__meta {
+  margin-bottom: .5rem;
+}
+.pp-note__timestamp {
+  font-size: .75rem;
+  color: var(--pp-text-muted);
+  font-weight: 500;
+  font-family: var(--pp-mono);
+}
+
+.pp-note__body {
+  font-size: .9375rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--pp-text);
+}
+.pp-note__empty { color: var(--pp-text-muted); font-style: italic; }
+
+/* ── Note attachments ──────────────────────────────────────── */
+.pp-note__attachments {
+  margin-top: .875rem;
+  padding-top: .875rem;
+  border-top: 1px solid var(--pp-border);
+}
+.pp-note__attachments-title {
+  font-size: .6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--pp-text-muted);
+  margin: 0 0 .5rem;
+}
+.pp-attachments-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .375rem;
+}
+.pp-attachment-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .875rem;
+}
+.pp-attachment-item__icon  { flex-shrink: 0; }
+.pp-attachment-item__label { color: var(--pp-text-muted); }
+.pp-attachment-item__link {
+  color: var(--pp-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.pp-attachment-item__link:hover { text-decoration: underline; }
+
+/* ── Back link ─────────────────────────────────────────────── */
+.pp-back-link { margin-top: 2rem; }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .pp-main              { padding: 1.5rem .875rem; }
+  .pp-page-title        { font-size: 1.5rem; }
+  .pp-deals-grid        { grid-template-columns: 1fr; }
+  .pp-deal-card__meta   { grid-template-columns: 1fr; }
+  .pp-detail-list       { grid-template-columns: 1fr; }
+  .pp-deal-header       { flex-direction: column; }
+  .pp-deal-header__name { font-size: 1.375rem; }
+  .pp-section           { padding: 1rem; }
+  .pp-auth-wall__inner  { padding: 1.5rem; }
+}
